@@ -1,14 +1,11 @@
 ﻿import sys
 import math
 
-class QuadraticEquation:
-    def __init__(self, A=None, B=None, C=None):
-        if A is not None and B is not None and C is not None:
-            self.A = A
-            self.B = B
-            self.C = C
-        else:
-            self.A, self.B, self.C = self.get_coefficients()
+class BiquadSolver:
+    def __init__(self):
+        self.A = None
+        self.B = None
+        self.C = None
 
     def get_coefficient_from_input(self, prompt):
         while True:
@@ -20,35 +17,26 @@ class QuadraticEquation:
 
     def get_coefficient(self, arg, prompt):
         try:
-            value = float(arg)
-            if value == 0 and prompt == 'A':
-                raise ValueError("Коэффициент A не должен быть равен нулю.")
-            return value
+            return float(arg)
         except (ValueError, TypeError):
             print(f"Некорректное значение для {prompt} в командной строке.")
             return self.get_coefficient_from_input(prompt)
 
     def get_coefficients(self):
         if len(sys.argv) == 4:
-            A = self.get_coefficient(sys.argv[1], "A")
-            while A == 0:
-                print("Коэффициент A не должен быть равен нулю. Попробуйте снова.")
-                A = self.get_coefficient_from_input("Введите коэффициент A: ")
-            B = self.get_coefficient(sys.argv[2], "B")
-            C = self.get_coefficient(sys.argv[3], "C")
+            self.A = self.get_coefficient(sys.argv[1], "коэффициент A")
+            self.B = self.get_coefficient(sys.argv[2], "коэффициент B")
+            self.C = self.get_coefficient(sys.argv[3], "коэффициент C")
         else:
             while True:
-                A = self.get_coefficient_from_input("Введите коэффициент A: ")
-                if A != 0:
+                self.A = self.get_coefficient_from_input("Введите коэффициент A: ")
+                if self.A != 0:
                     break
                 print("Коэффициент A не должен быть равен нулю. Попробуйте снова.")
-            B = self.get_coefficient_from_input("Введите коэффициент B: ")
-            C = self.get_coefficient_from_input("Введите коэффициент C: ")
+            self.B = self.get_coefficient_from_input("Введите коэффициент B: ")
+            self.C = self.get_coefficient_from_input("Введите коэффициент C: ")
 
-        return A, B, C
-
-    def get_roots(self):
-        A, B, C = self.A, self.B, self.C
+    def solve_quadratic(self, A, B, C):
         result = []
         D = B * B - 4 * A * C
         if D == 0.0:
@@ -62,21 +50,29 @@ class QuadraticEquation:
             result.append(root2)
         return result
 
-    def solve_and_print(self):
+    def solve_biquadratic(self):
+        quadratic_roots = self.solve_quadratic(self.A, self.B, self.C)
+        biquadratic_roots = set()  # Используем set для исключения дубликатов
+        for root in quadratic_roots:
+            if root > 0:
+                biquadratic_roots.add(math.sqrt(root))
+                biquadratic_roots.add(-math.sqrt(root))
+            elif root == 0:
+                biquadratic_roots.add(math.sqrt(root))
+        return list(biquadratic_roots)  # Преобразуем set обратно в список
+
+    def main(self):
+        self.get_coefficients()
+
         print(f"Коэффициенты: A={self.A}, B={self.B}, C={self.C}")
-        print(f"Уравнение: {self.A}*x^2 + {self.B}*x + {self.C} = 0")
+        print(f"Уравнение: {self.A}*x^4 + {self.B}*x^2 + {self.C} = 0")
 
-        result = self.get_roots()
-        if len(result) == 1:
-            print(f"Корень: {result[0]}")
-        elif len(result) == 2:
-            print(f"Корни: {result[0]}, {result[1]}")
-        else:
+        result = self.solve_biquadratic()
+        if len(result) == 0:
             print("Нет корней")
-
-def main():
-    equation = QuadraticEquation()
-    equation.solve_and_print()
+        else:
+            print(f"Решение: {', '.join(map(str, result))}")
 
 if __name__ == "__main__":
-    main()
+    solver = BiquadSolver()
+    solver.main()
